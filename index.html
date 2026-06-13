@@ -311,61 +311,31 @@
 
     const app = document.getElementById("app");
     let currentQuestion = 0;
-    let wrongAnswers = 0;
     let attemptsToEscape = 0;
 
     const ella = NOMBRE_DE_ELLA.trim() || "vos";
 
     const questions = [
       {
-        question: "Pregunta 1, nivel fácil: ¿quién es la chica más linda?",
+        question: "¿Cuánto me querés?",
         options: [
-          { text: "Yo", correct: true },
-          { text: "No sé", correct: false },
-          { text: "Otra persona", correct: false },
-          { text: TU_NOMBRE, correct: false }
+          { text: "Mucho" },
+          { text: "Muchísimo" },
+          { text: "Más que a nadie" },
+          { text: "No tengo opción porque el Fipo hizo este test" }
         ],
-        wrongMessage: "Respuesta preocupante. Probá de nuevo, pero esta vez usando los ojos."
+        nextMessage: "Ay muchas gracias! Lo sabia 🥰"
       },
       {
-        question: `Según estudios inventados por ${TU_NOMBRE}, ¿cuánto me querés?`,
+        question: "¿Quién tiene razón en las discusiones?",
         options: [
-          { text: "Mucho", correct: false },
-          { text: "Muchísimo", correct: false },
-          { text: "Más de lo razonable", correct: true },
-          { text: "Depende de si me molestás", correct: false }
+          { text: "A. Felipe" },
+          { text: "B. Fipo" },
+          { text: "C. A" },
+          { text: "D. B" },
+          { text: "E. Yo", evasive: true }
         ],
-        wrongMessage: "Mmm... insuficiente. El sistema detectó falta de exageración."
-      },
-      {
-        question: `Cuando ${TU_NOMBRE} te molesta, en realidad significa que...`,
-        options: [
-          { text: "Es insoportable", correct: false },
-          { text: "Está pidiendo atención como un nene", correct: false },
-          { text: "Te quiere pero no sabe comportarse", correct: true },
-          { text: "Hay que bloquearlo", correct: false }
-        ],
-        wrongMessage: "Casi. Algunas opciones tienen evidencia científica, pero no era esa."
-      },
-      {
-        question: "En una discusión normal entre nosotros, ¿quién tiene razón?",
-        options: [
-          { text: "Yo", correct: false },
-          { text: TU_NOMBRE + ", obviamente", correct: true },
-          { text: "Depende", correct: false },
-          { text: "Nadie, pero igual gano yo", correct: false }
-        ],
-        wrongMessage: `Incorrecto. Esta pregunta fue auditada por ${TU_NOMBRE} y aprobada por ${TU_NOMBRE}.`
-      },
-      {
-        question: `Última pregunta: ¿aceptás seguir siendo la persona favorita de ${TU_NOMBRE}?`,
-        options: [
-          { text: "Sí", correct: true },
-          { text: "Obvio", correct: true },
-          { text: "No tengo escapatoria", correct: true },
-          { text: "Bueno, pero no te agrandes", correct: true }
-        ],
-        wrongMessage: ""
+        nextMessage: "Buena chica, que suerte que sabes quien tiene los pantalones en la relacion"
       }
     ];
 
@@ -407,7 +377,6 @@
 
     function startQuiz() {
       currentQuestion = 0;
-      wrongAnswers = 0;
       showQuestion();
     }
 
@@ -422,7 +391,12 @@
         <p>${q.question}</p>
         <div class="buttons">
           ${q.options.map((option, index) => `
-            <button class="${index % 2 ? "secondary" : ""}" onclick="answerQuestion(${index})">${option.text}</button>
+            <button
+              class="${index % 2 ? "secondary" : ""} ${option.evasive ? "danger" : ""}"
+              ${option.evasive ? 'id="discussionEscape"' : ""}
+              ${option.evasive ? 'onmouseenter="moveDiscussionButton()"' : ""}
+              onclick="answerQuestion(${index})"
+            >${option.text}</button>
           `).join("")}
         </div>
         <div class="message" id="message"></div>
@@ -433,28 +407,42 @@
       const q = questions[currentQuestion];
       const selected = q.options[index];
 
-      if (!selected.correct) {
-        wrongAnswers++;
-        const msg = document.getElementById("message");
-        msg.textContent = q.wrongMessage;
-        app.classList.remove("shake");
-        void app.offsetWidth;
-        app.classList.add("shake");
+      if (selected.evasive) {
+        moveDiscussionButton();
         return;
       }
 
-      currentQuestion++;
+      showTransitionMessage(q.nextMessage, () => {
+        currentQuestion++;
 
-      if (currentQuestion >= questions.length) {
-        showResult();
-      } else {
-        showQuestion();
+        if (currentQuestion >= questions.length) {
+          showResult();
+        } else {
+          showQuestion();
+        }
+      });
+    }
+
+    function moveDiscussionButton() {
+      const btn = document.getElementById("discussionEscape");
+
+      if (!btn) {
+        return;
       }
+
+      btn.style.transform = `translate(${random(-210, 210)}px, ${random(-110, 110)}px)`;
+    }
+
+    function showTransitionMessage(message, onComplete) {
+      render(`
+        <div class="message" style="min-height:auto; font-size:28px; margin-top:0;">${message}</div>
+      `);
+      setTimeout(onComplete, 1800);
     }
 
     function showResult() {
-      const paciencia = Math.max(1, 100 - wrongAnswers * 6);
-      const insoportable = Math.min(99, 43 + wrongAnswers * 9);
+      const paciencia = 100;
+      const insoportable = 43;
 
       render(`
         <div class="badge">📋 Informe final</div>
