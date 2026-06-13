@@ -135,19 +135,17 @@
       align-items: center;
     }
 
-    .escape-zone {
-      position: relative;
-      min-height: 96px;
-      margin-top: 14px;
-      border: 1px dashed #ffd0df;
-      border-radius: 22px;
-      background: #fff6f9;
-      overflow: hidden;
+    .escape-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
     }
 
-    .escape-zone button {
+    .escape-layer button {
       position: absolute;
       margin: 0;
+      pointer-events: auto;
     }
 
     button {
@@ -395,7 +393,7 @@
           `).join("")}
         </div>
         ${evasiveOption ? `
-          <div class="escape-zone" id="discussionEscapeZone">
+          <div class="escape-layer" id="discussionEscapeLayer">
             <button
               class="danger"
               id="discussionEscape"
@@ -434,9 +432,9 @@
 
     function moveDiscussionButton() {
       const btn = document.getElementById("discussionEscape");
-      const zone = document.getElementById("discussionEscapeZone");
+      const layer = document.getElementById("discussionEscapeLayer");
 
-      if (!btn || !zone) {
+      if (!btn || !layer) {
         return;
       }
 
@@ -445,16 +443,17 @@
 
     function placeDiscussionButton(mode) {
       const btn = document.getElementById("discussionEscape");
-      const zone = document.getElementById("discussionEscapeZone");
+      const layer = document.getElementById("discussionEscapeLayer");
 
-      if (!btn || !zone) {
+      if (!btn || !layer) {
         return;
       }
 
-      const maxLeft = Math.max(0, zone.clientWidth - btn.offsetWidth - 12);
-      const maxTop = Math.max(0, zone.clientHeight - btn.offsetHeight - 12);
-      const left = mode === "center" ? Math.round(maxLeft / 2) : random(0, maxLeft);
-      const top = mode === "center" ? Math.round(maxTop / 2) : random(0, maxTop);
+      const padding = 16;
+      const maxLeft = Math.max(0, window.innerWidth - btn.offsetWidth - padding * 2);
+      const maxTop = Math.max(0, window.innerHeight - btn.offsetHeight - padding * 2);
+      const left = mode === "center" ? Math.round(maxLeft / 2) + padding : random(padding, maxLeft + padding);
+      const top = mode === "center" ? Math.round(maxTop / 2) + padding : random(padding, maxTop + padding);
 
       btn.style.left = `${left}px`;
       btn.style.top = `${top}px`;
