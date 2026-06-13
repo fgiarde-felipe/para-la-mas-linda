@@ -274,6 +274,17 @@
       z-index: 4;
     }
 
+    .youtube-audio-player {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      width: 200px;
+      height: 200px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: -1;
+    }
+
     @keyframes fall {
       to {
         transform: translateY(calc(100vh + 40px)) rotate(360deg);
@@ -308,15 +319,19 @@
   </style>
 </head>
 <body>
+  <div class="youtube-audio-player" id="youtubeAudioPlayer"></div>
   <main class="card" id="app"></main>
 
   <script>
     // Cambiá estos textos si querés personalizarlo más.
     const TU_NOMBRE = "Felipe";
     const NOMBRE_DE_ELLA = "Lucia"; // Ejemplo: "Sofi". Si lo dejás vacío, usa "vos".
+    const AUDIO_VIDEO_ID = "5bcgc8pVQT8";
 
     const app = document.getElementById("app");
     let currentQuestion = 0;
+    let audioPlayer;
+    let youtubeApiRequested = false;
 
     const ella = NOMBRE_DE_ELLA.trim() || "vos";
 
@@ -546,6 +561,73 @@
       return Math.min(Math.max(value, min), max);
     }
 
+    function requestAudioStart() {
+      if (!audioPlayer || typeof audioPlayer.playVideo !== "function") {
+        return;
+      }
+
+      audioPlayer.unMute();
+      audioPlayer.setVolume(100);
+      audioPlayer.playVideo();
+    }
+
+    function attachAudioRetryListeners() {
+      const retry = () => {
+        requestAudioStart();
+      };
+
+      document.addEventListener("pointerdown", retry, { passive: true });
+      document.addEventListener("keydown", retry);
+      document.addEventListener("touchstart", retry, { passive: true });
+    }
+
+    function loadYouTubeAudio() {
+      if (youtubeApiRequested) {
+        return;
+      }
+
+      youtubeApiRequested = true;
+      attachAudioRetryListeners();
+
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+    }
+
+    function onYouTubeIframeAPIReady() {
+      audioPlayer = new YT.Player("youtubeAudioPlayer", {
+        width: "200",
+        height: "200",
+        videoId: AUDIO_VIDEO_ID,
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          disablekb: 1,
+          fs: 0,
+          iv_load_policy: 3,
+          loop: 1,
+          modestbranding: 1,
+          playlist: AUDIO_VIDEO_ID,
+          playsinline: 1,
+          rel: 0
+        },
+        events: {
+          onReady: () => {
+            requestAudioStart();
+          },
+          onStateChange: (event) => {
+            if (event.data === YT.PlayerState.ENDED) {
+              audioPlayer.seekTo(0);
+              requestAudioStart();
+            }
+          }
+        }
+      });
+    }
+
+    window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+    loadYouTubeAudio();
     showAccessScreen();
   </script>
 </body>
