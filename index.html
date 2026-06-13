@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ff4f8b" />
+  <meta property="og:title" content="Acceso restringido" />
+  <meta property="og:description" content="Página exclusiva. Solo una persona puede entrar." />
+  <title>Acceso restringido</title>
+
+  <style>
+    :root {
+      --pink: #ff4f8b;
+      --pink-dark: #db2f6a;
+      --soft-pink: #ffe4ed;
+      --cream: #fff9fb;
+      --text: #2b2b2b;
+      --muted: #777;
+      --card: rgba(255, 255, 255, 0.92);
+      --shadow: 0 25px 80px rgba(130, 35, 75, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      background:
+        radial-gradient(circle at top left, #fff 0 10%, transparent 30%),
+        radial-gradient(circle at bottom right, #ffc8da 0 10%, transparent 28%),
+        linear-gradient(135deg, #ffd1dc, #fff0f5 45%, #ffe8c8);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle, rgba(255, 79, 139, 0.12) 1.5px, transparent 1.5px);
+      background-size: 26px 26px;
+      pointer-events: none;
+      opacity: 0.75;
+    }
+
+    .card {
+      position: relative;
+      width: min(100%, 560px);
+      background: var(--card);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: 30px;
+      padding: 34px 26px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      animation: appear 0.35s ease both;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      background: rgba(255, 79, 139, 0.08);
+      right: -75px;
+      top: -75px;
+      pointer-events: none;
+    }
+
+    @keyframes appear {
+      from { opacity: 0; transform: translateY(12px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: var(--soft-pink);
+      color: var(--pink-dark);
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(30px, 8vw, 46px);
+      line-height: 1.03;
+      letter-spacing: -0.05em;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: clamp(25px, 6vw, 34px);
+      line-height: 1.08;
+      letter-spacing: -0.04em;
+    }
+
+    p {
+      margin: 11px auto;
+      max-width: 460px;
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .buttons {
+      margin-top: 22px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 20px;
+      min-height: 50px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      color: white;
+      background: linear-gradient(135deg, var(--pink), #ff7aaa);
+      box-shadow: 0 12px 26px rgba(255, 79, 139, 0.28);
+      transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+      touch-action: manipulation;
+    }
+
+    button:hover {
+      transform: translateY(-2px) scale(1.02);
+      filter: brightness(1.02);
+      box-shadow: 0 14px 28px rgba(255, 79, 139, 0.33);
+    }
+
+    button:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .secondary {
+      background: white;
+      color: var(--pink-dark);
+      border: 1px solid #ffd0df;
+      box-shadow: none;
+    }
+
+    .danger {
+      background: #eeeeee;
+      color: #333;
+      box-shadow: none;
+      position: relative;
+    }
+
+    .message {
+      min-height: 30px;
+      margin-top: 18px;
+      color: var(--pink-dark);
+      font-weight: 900;
+    }
+
+    .progress-text {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #f2e2e8;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 0 auto 20px;
+      max-width: 360px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--pink), #ffb347);
+      border-radius: inherit;
+      transition: width 0.3s ease;
+    }
+
+    .loader {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      margin: 18px auto;
+      border: 9px solid #ffe0ea;
+      border-top-color: var(--pink);
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .result-number {
+      font-size: clamp(48px, 15vw, 74px);
+      font-weight: 950;
+      color: var(--pink);
+      line-height: 1;
+      margin: 18px 0 8px;
+      letter-spacing: -0.06em;
+    }
+
+    .stats {
+      display: grid;
+      gap: 10px;
+      margin: 22px auto;
+      max-width: 430px;
+      text-align: left;
+    }
+
+    .stat {
+      background: #fff6f9;
+      border: 1px solid #ffd5e2;
+      padding: 13px 15px;
+      border-radius: 18px;
+      font-weight: 800;
+    }
+
+    .final-note {
+      background: #fff6f9;
+      border: 1px dashed #ff9abd;
+      border-radius: 22px;
+      padding: 18px;
+      margin-top: 18px;
+      text-align: left;
+    }
+
+    .final-note p {
+      font-size: 16px;
+      margin: 8px 0;
+    }
+
+    .heart {
+      position: fixed;
+      top: -20px;
+      font-size: 22px;
+      pointer-events: none;
+      animation: fall linear forwards;
+      z-index: 4;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(calc(100vh + 40px)) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .shake {
+      animation: shake 0.25s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    @media (max-width: 420px) {
+      .card {
+        padding: 30px 18px;
+        border-radius: 26px;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .buttons {
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="card" id="app"></main>
+
+  <script>
+    // Cambiá estos textos si querés personalizarlo más.
+    const TU_NOMBRE = "Felipe";
+    const NOMBRE_DE_ELLA = ""; // Ejemplo: "Sofi". Si lo dejás vacío, usa "vos".
+
+    const app = document.getElementById("app");
+    let currentQuestion = 0;
+    let wrongAnswers = 0;
+    let attemptsToEscape = 0;
+
+    const ella = NOMBRE_DE_ELLA.trim() || "vos";
+
+    const questions = [
+      {
+        question: "Pregunta 1, nivel fácil: ¿quién es la chica más linda?",
+        options: [
+          { text: "Yo", correct: true },
+          { text: "No sé", correct: false },
+          { text: "Otra persona", correct: false },
+          { text: TU_NOMBRE, correct: false }
+        ],
+        wrongMessage: "Respuesta preocupante. Probá de nuevo, pero esta vez usando los ojos."
+      },
+      {
+        question: `Según estudios inventados por ${TU_NOMBRE}, ¿cuánto me querés?`,
+        options: [
+          { text: "Mucho", correct: false },
+          { text: "Muchísimo", correct: false },
+          { text: "Más de lo razonable", correct: true },
+          { text: "Depende de si me molestás", correct: false }
+        ],
+        wrongMessage: "Mmm... insuficiente. El sistema detectó falta de exageración."
+      },
+      {
+        question: `Cuando ${TU_NOMBRE} te molesta, en realidad significa que...`,
+        options: [
+          { text: "Es insoportable", correct: false },
+          { text: "Está pidiendo atención como un nene", correct: false },
+          { text: "Te quiere pero no sabe comportarse", correct: true },
+          { text: "Hay que bloquearlo", correct: false }
+        ],
+        wrongMessage: "Casi. Algunas opciones tienen evidencia científica, pero no era esa."
+      },
+      {
+        question: "En una discusión normal de pareja, ¿quién tiene razón?",
+        options: [
+          { text: "Yo", correct: false },
+          { text: TU_NOMBRE + ", obviamente", correct: true },
+          { text: "Depende", correct: false },
+          { text: "Nadie, pero igual gano yo", correct: false }
+        ],
+        wrongMessage: `Incorrecto. Esta pregunta fue auditada por ${TU_NOMBRE} y aprobada por ${TU_NOMBRE}.`
+      },
+      {
+        question: `Última pregunta: ¿aceptás seguir siendo la persona favorita de ${TU_NOMBRE}?`,
+        options: [
+          { text: "Sí", correct: true },
+          { text: "Obvio", correct: true },
+          { text: "No tengo escapatoria", correct: true },
+          { text: "Bueno, pero no te agrandes", correct: true }
+        ],
+        wrongMessage: ""
+      }
+    ];
+
+    function render(html) {
+      app.classList.remove("shake");
+      app.innerHTML = html;
+    }
+
+    function showAccessScreen() {
+      render(`
+        <div class="badge">🔒 Sistema altamente innecesario</div>
+        <h1>Acceso denegado</h1>
+        <p>Esta página es exclusiva para la chica más linda.</p>
+        <p class="muted">Si no sos ella, retirate lentamente y fingí que no viste nada.</p>
+        <div class="buttons">
+          <button onclick="verifyBeauty()">Soy yo</button>
+          <button class="danger" id="notMe" onclick="moveNotMeButton()">No soy yo</button>
+        </div>
+        <div class="message" id="message"></div>
+      `);
+    }
+
+    function moveNotMeButton() {
+      attemptsToEscape++;
+      const btn = document.getElementById("notMe");
+      const msg = document.getElementById("message");
+
+      if (attemptsToEscape < 3) {
+        btn.style.transform = `translate(${random(-80, 80)}px, ${random(-35, 35)}px)`;
+        msg.textContent = "Ajá. Sospechoso. Ese botón no quiere colaborar.";
+      } else {
+        msg.textContent = "Bueno, ya está. Todos sabemos que sí sos vos.";
+        btn.textContent = "Mentira, soy yo";
+      }
+    }
+
+    function verifyBeauty() {
+      render(`
+        <div class="badge">🧪 Verificación oficial</div>
+        <h1>Verificando...</h1>
+        <div class="loader"></div>
+        <p id="loadingText">Analizando niveles de belleza, ternura y capacidad de soportar a ${TU_NOMBRE}.</p>
+        <div class="progress-bar"><div class="progress-fill" id="fakeProgress"></div></div>
+        <p class="message">Cargando informe absolutamente serio...</p>
+      `);
+
+      const steps = [
+        { width: "22%", text: "Escaneando sonrisa... peligro: demasiado linda." },
+        { width: "47%", text: "Midiendo paciencia con Felipe... sorprendentemente alta." },
+        { width: "73%", text: "Detectando ternura... niveles ilegales." },
+        { width: "100%", text: "Resultado confirmado. No hay margen de error." }
+      ];
+
+      let i = 0;
+      const interval = setInterval(() => {
+        document.getElementById("fakeProgress").style.width = steps[i].width;
+        document.getElementById("loadingText").textContent = steps[i].text;
+        i++;
+        if (i >= steps.length) {
+          clearInterval(interval);
+          setTimeout(showConfirmedScreen, 600);
+        }
+      }, 650);
+    }
+
+    function showConfirmedScreen() {
+      render(`
+        <div class="badge">✅ Acceso aprobado</div>
+        <h1>Confirmado</h1>
+        <p>Sos vos.</p>
+        <p>Qué bronca que encima tengas razón.</p>
+        <p class="muted">Ahora empieza una evaluación obligatoria. No te asustes, está totalmente manipulada.</p>
+        <div class="buttons">
+          <button onclick="startQuiz()">Continuar</button>
+        </div>
+      `);
+    }
+
+    function startQuiz() {
+      currentQuestion = 0;
+      wrongAnswers = 0;
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = questions[currentQuestion];
+      const progress = Math.round((currentQuestion / questions.length) * 100);
+
+      render(`
+        <div class="progress-text">Pregunta ${currentQuestion + 1} de ${questions.length}</div>
+        <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+        <h2>Evaluación oficial de novia</h2>
+        <p>${q.question}</p>
+        <div class="buttons">
+          ${q.options.map((option, index) => `
+            <button class="${index % 2 ? "secondary" : ""}" onclick="answerQuestion(${index})">${option.text}</button>
+          `).join("")}
+        </div>
+        <div class="message" id="message"></div>
+      `);
+    }
+
+    function answerQuestion(index) {
+      const q = questions[currentQuestion];
+      const selected = q.options[index];
+
+      if (!selected.correct) {
+        wrongAnswers++;
+        const msg = document.getElementById("message");
+        msg.textContent = q.wrongMessage;
+        app.classList.remove("shake");
+        void app.offsetWidth;
+        app.classList.add("shake");
+        return;
+      }
+
+      currentQuestion++;
+
+      if (currentQuestion >= questions.length) {
+        showResult();
+      } else {
+        showQuestion();
+      }
+    }
+
+    function showResult() {
+      const paciencia = Math.max(1, 100 - wrongAnswers * 6);
+      const insoportable = Math.min(99, 43 + wrongAnswers * 9);
+
+      render(`
+        <div class="badge">📋 Informe final</div>
+        <h1>Diagnóstico completo</h1>
+        <div class="result-number">100%</div>
+        <p>Confirmado: ${ella} es oficialmente la persona favorita de ${TU_NOMBRE}.</p>
+
+        <div class="stats">
+          <div class="stat">💖 Nivel de lindura: ilegal</div>
+          <div class="stat">😌 Paciencia con ${TU_NOMBRE}: ${paciencia}%</div>
+          <div class="stat">😈 Probabilidad de que ${TU_NOMBRE} te siga molestando: ${insoportable}%</div>
+          <div class="stat">🔒 Estado de la relación: no reembolsable</div>
+        </div>
+
+        <div class="final-note">
+          <p><strong>Nota final, ahora sí sin hacerme el gracioso:</strong></p>
+          <p>Me encanta molestarte, hacerte reír y buscar cualquier excusa para sacarte una sonrisa.</p>
+          <p>Pero posta: te quiero muchísimo. Sos mi persona favorita, incluso cuando te hacés la difícil.</p>
+        </div>
+
+        <div class="buttons">
+          <button onclick="rainHearts()">Aceptar diagnóstico</button>
+          <button class="secondary" onclick="startQuiz()">Repetir evaluación</button>
+        </div>
+      `);
+
+      rainHearts();
+    }
+
+    function rainHearts() {
+      const hearts = ["💖", "💕", "💘", "💗", "❤️", "✨"];
+      for (let i = 0; i < 34; i++) {
+        setTimeout(() => {
+          const heart = document.createElement("div");
+          heart.className = "heart";
+          heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+          heart.style.left = Math.random() * 100 + "vw";
+          heart.style.animationDuration = random(2200, 4200) + "ms";
+          heart.style.opacity = String(Math.random() * 0.6 + 0.4);
+          heart.style.fontSize = random(17, 30) + "px";
+          document.body.appendChild(heart);
+          setTimeout(() => heart.remove(), 4600);
+        }, i * 70);
+      }
+    }
+
+    function random(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    showAccessScreen();
+  </script>
+</body>
+</html>
