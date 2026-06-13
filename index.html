@@ -389,7 +389,8 @@
               class="${option.evasive ? "" : (index % 2 ? "secondary" : "")} ${option.evasive ? "secondary" : ""}"
               ${option.evasive ? 'id="discussionEscape"' : ""}
               ${option.evasive ? 'onmouseenter="moveDiscussionButton()"' : ""}
-              onclick="answerQuestion(${index})"
+              ${option.evasive ? 'onpointerdown="return handleEvasiveInteraction(event)"' : ""}
+              onclick="${option.evasive ? 'return false' : `answerQuestion(${index})`}"
             >${option.text}</button>
           `).join("")}
         </div>
@@ -424,10 +425,17 @@
         return;
       }
 
-      placeDiscussionButton("random");
+      placeDiscussionButton();
     }
 
-    function placeDiscussionButton(mode) {
+    function handleEvasiveInteraction(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      moveDiscussionButton();
+      return false;
+    }
+
+    function placeDiscussionButton() {
       const btn = document.getElementById("discussionEscape");
 
       if (!btn) {
@@ -445,10 +453,19 @@
         document.body.appendChild(btn);
       }
 
-      const maxLeft = Math.max(0, window.innerWidth - btn.offsetWidth - padding * 2);
-      const maxTop = Math.max(0, window.innerHeight - btn.offsetHeight - padding * 2);
-      const left = mode === "center" ? Math.round(maxLeft / 2) + padding : random(padding, maxLeft + padding);
-      const top = mode === "center" ? Math.round(maxTop / 2) + padding : random(padding, maxTop + padding);
+      const currentLeft = parseFloat(btn.style.left || rect.left);
+      const currentTop = parseFloat(btn.style.top || rect.top);
+      const minLeft = padding;
+      const maxLeft = Math.max(minLeft, window.innerWidth - btn.offsetWidth - padding);
+      const minTop = padding;
+      const maxTop = Math.max(minTop, window.innerHeight - btn.offsetHeight - padding);
+      let left = clamp(currentLeft + random(-110, 110), minLeft, maxLeft);
+      let top = clamp(currentTop + random(-70, 70), minTop, maxTop);
+
+      if (Math.abs(left - currentLeft) < 35 && Math.abs(top - currentTop) < 25) {
+        left = clamp(currentLeft + random(-140, 140), minLeft, maxLeft);
+        top = clamp(currentTop + random(-90, 90), minTop, maxTop);
+      }
 
       btn.style.left = `${left}px`;
       btn.style.top = `${top}px`;
@@ -523,6 +540,10 @@
 
     function random(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
     }
 
     showAccessScreen();
