@@ -326,7 +326,6 @@
 
     const app = document.getElementById("app");
     let currentQuestion = 0;
-    let attemptsToEscape = 0;
 
     const ella = NOMBRE_DE_ELLA.trim() || "vos";
 
@@ -366,24 +365,8 @@
         <p class="muted">Si no sos ella, por favor retirate.</p>
         <div class="buttons">
           <button onclick="verifyBeauty()">Soy yo</button>
-          <button class="danger" id="notMe" onclick="moveNotMeButton()">No soy yo</button>
         </div>
-        <div class="message" id="message"></div>
       `);
-    }
-
-    function moveNotMeButton() {
-      attemptsToEscape++;
-      const btn = document.getElementById("notMe");
-      const msg = document.getElementById("message");
-
-      if (attemptsToEscape < 3) {
-        btn.style.transform = `translate(${random(-170, 170)}px, ${random(-90, 90)}px)`;
-        msg.textContent = "";
-      } else {
-        msg.textContent = "Deja de hacerte, sabes que sos vos";
-        btn.remove();
-      }
     }
 
     function verifyBeauty() {
