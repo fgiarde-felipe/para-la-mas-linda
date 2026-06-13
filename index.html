@@ -480,8 +480,19 @@
     function showTransitionMessage(message, onComplete) {
       render(`
         <div class="message" style="min-height:auto; font-size:28px; margin-top:0;">${message}</div>
+        <div class="progress-bar" style="margin-top: 22px;">
+          <div class="progress-fill" id="transitionProgress" style="width: 0; transition: width 5s linear;"></div>
+        </div>
       `);
-      setTimeout(onComplete, 1800);
+
+      requestAnimationFrame(() => {
+        const progress = document.getElementById("transitionProgress");
+        if (progress) {
+          progress.style.width = "100%";
+        }
+      });
+
+      setTimeout(onComplete, 5000);
     }
 
     function showResult() {
