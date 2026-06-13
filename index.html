@@ -307,7 +307,7 @@
   <script>
     // Cambiá estos textos si querés personalizarlo más.
     const TU_NOMBRE = "Felipe";
-    const NOMBRE_DE_ELLA = ""; // Ejemplo: "Sofi". Si lo dejás vacío, usa "vos".
+    const NOMBRE_DE_ELLA = "Lucia"; // Ejemplo: "Sofi". Si lo dejás vacío, usa "vos".
 
     const app = document.getElementById("app");
     let currentQuestion = 0;
@@ -376,10 +376,9 @@
 
     function showAccessScreen() {
       render(`
-        <div class="badge">🔒 Sistema altamente innecesario</div>
         <h1>Acceso denegado</h1>
         <p>Esta página es exclusiva para la chica más linda.</p>
-        <p class="muted">Si no sos ella, retirate lentamente y fingí que no viste nada.</p>
+        <p class="muted">Si no sos ella, por favor retirate.</p>
         <div class="buttons">
           <button onclick="verifyBeauty()">Soy yo</button>
           <button class="danger" id="notMe" onclick="moveNotMeButton()">No soy yo</button>
@@ -394,29 +393,27 @@
       const msg = document.getElementById("message");
 
       if (attemptsToEscape < 3) {
-        btn.style.transform = `translate(${random(-80, 80)}px, ${random(-35, 35)}px)`;
-        msg.textContent = "Ajá. Sospechoso. Ese botón no quiere colaborar.";
+        btn.style.transform = `translate(${random(-170, 170)}px, ${random(-90, 90)}px)`;
+        msg.textContent = "";
       } else {
-        msg.textContent = "Bueno, ya está. Todos sabemos que sí sos vos.";
-        btn.textContent = "Mentira, soy yo";
+        msg.textContent = "Deja de hacerte, sabes que sos vos";
+        btn.remove();
       }
     }
 
     function verifyBeauty() {
       render(`
-        <div class="badge">🧪 Verificación oficial</div>
         <h1>Verificando...</h1>
         <div class="loader"></div>
-        <p id="loadingText">Analizando niveles de belleza, ternura y capacidad de soportar a ${TU_NOMBRE}.</p>
         <div class="progress-bar"><div class="progress-fill" id="fakeProgress"></div></div>
-        <p class="message">Cargando informe absolutamente serio...</p>
+        <p class="message">Cargando informe...</p>
       `);
 
       const steps = [
-        { width: "22%", text: "Escaneando sonrisa... peligro: demasiado linda." },
-        { width: "47%", text: "Midiendo paciencia con Felipe... sorprendentemente alta." },
-        { width: "73%", text: "Detectando ternura... niveles ilegales." },
-        { width: "100%", text: "Resultado confirmado. No hay margen de error." }
+        { width: "22%", text: "" },
+        { width: "47%", text: "" },
+        { width: "73%", text: "" },
+        { width: "100%", text: "" }
       ];
 
       let i = 0;
