@@ -459,12 +459,12 @@
       const maxLeft = Math.max(minLeft, window.innerWidth - btn.offsetWidth - padding);
       const minTop = padding;
       const maxTop = Math.max(minTop, window.innerHeight - btn.offsetHeight - padding);
-      let left = clamp(currentLeft + random(-110, 110), minLeft, maxLeft);
-      let top = clamp(currentTop + random(-70, 70), minTop, maxTop);
+      let left = clamp(currentLeft + random(-170, 170), minLeft, maxLeft);
+      let top = clamp(currentTop + random(-110, 110), minTop, maxTop);
 
       if (Math.abs(left - currentLeft) < 35 && Math.abs(top - currentTop) < 25) {
-        left = clamp(currentLeft + random(-140, 140), minLeft, maxLeft);
-        top = clamp(currentTop + random(-90, 90), minTop, maxTop);
+        left = clamp(currentLeft + random(-210, 210), minLeft, maxLeft);
+        top = clamp(currentTop + random(-140, 140), minTop, maxTop);
       }
 
       btn.style.left = `${left}px`;
