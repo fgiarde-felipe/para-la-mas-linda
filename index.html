@@ -348,7 +348,7 @@
         wrongMessage: "Casi. Algunas opciones tienen evidencia científica, pero no era esa."
       },
       {
-        question: "En una discusión normal de pareja, ¿quién tiene razón?",
+        question: "En una discusión normal entre nosotros, ¿quién tiene razón?",
         options: [
           { text: "Yo", correct: false },
           { text: TU_NOMBRE + ", obviamente", correct: true },
@@ -402,43 +402,7 @@
     }
 
     function verifyBeauty() {
-      render(`
-        <h1>Verificando...</h1>
-        <div class="loader"></div>
-        <div class="progress-bar"><div class="progress-fill" id="fakeProgress"></div></div>
-        <p class="message">Cargando informe...</p>
-      `);
-
-      const steps = [
-        { width: "22%", text: "" },
-        { width: "47%", text: "" },
-        { width: "73%", text: "" },
-        { width: "100%", text: "" }
-      ];
-
-      let i = 0;
-      const interval = setInterval(() => {
-        document.getElementById("fakeProgress").style.width = steps[i].width;
-        document.getElementById("loadingText").textContent = steps[i].text;
-        i++;
-        if (i >= steps.length) {
-          clearInterval(interval);
-          setTimeout(showConfirmedScreen, 600);
-        }
-      }, 650);
-    }
-
-    function showConfirmedScreen() {
-      render(`
-        <div class="badge">✅ Acceso aprobado</div>
-        <h1>Confirmado</h1>
-        <p>Sos vos.</p>
-        <p>Qué bronca que encima tengas razón.</p>
-        <p class="muted">Ahora empieza una evaluación obligatoria. No te asustes, está totalmente manipulada.</p>
-        <div class="buttons">
-          <button onclick="startQuiz()">Continuar</button>
-        </div>
-      `);
+      startQuiz();
     }
 
     function startQuiz() {
@@ -454,7 +418,7 @@
       render(`
         <div class="progress-text">Pregunta ${currentQuestion + 1} de ${questions.length}</div>
         <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
-        <h2>Evaluación oficial de novia</h2>
+        <h2>Evaluación oficial</h2>
         <p>${q.question}</p>
         <div class="buttons">
           ${q.options.map((option, index) => `
