@@ -135,6 +135,21 @@
       align-items: center;
     }
 
+    .escape-zone {
+      position: relative;
+      min-height: 96px;
+      margin-top: 14px;
+      border: 1px dashed #ffd0df;
+      border-radius: 22px;
+      background: #fff6f9;
+      overflow: hidden;
+    }
+
+    .escape-zone button {
+      position: absolute;
+      margin: 0;
+    }
+
     button {
       border: 0;
       border-radius: 999px;
@@ -333,7 +348,7 @@
           { text: "B. Fipo" },
           { text: "C. A" },
           { text: "D. B" },
-          { text: "E. Yo", evasive: true }
+          { text: `E. ${NOMBRE_DE_ELLA.trim() || "Vos"}`, evasive: true }
         ],
         nextMessage: "Buena chica, que suerte que sabes quien tiene los pantalones en la relacion"
       }
@@ -383,6 +398,8 @@
     function showQuestion() {
       const q = questions[currentQuestion];
       const progress = Math.round((currentQuestion / questions.length) * 100);
+      const regularOptions = q.options.filter((option) => !option.evasive);
+      const evasiveOption = q.options.find((option) => option.evasive);
 
       render(`
         <div class="progress-text">Pregunta ${currentQuestion + 1} de ${questions.length}</div>
@@ -390,17 +407,26 @@
         <h2>Evaluación oficial</h2>
         <p>${q.question}</p>
         <div class="buttons">
-          ${q.options.map((option, index) => `
-            <button
-              class="${index % 2 ? "secondary" : ""} ${option.evasive ? "danger" : ""}"
-              ${option.evasive ? 'id="discussionEscape"' : ""}
-              ${option.evasive ? 'onmouseenter="moveDiscussionButton()"' : ""}
-              onclick="answerQuestion(${index})"
-            >${option.text}</button>
+          ${regularOptions.map((option, index) => `
+            <button class="${index % 2 ? "secondary" : ""}" onclick="answerQuestion(${q.options.indexOf(option)})">${option.text}</button>
           `).join("")}
         </div>
+        ${evasiveOption ? `
+          <div class="escape-zone" id="discussionEscapeZone">
+            <button
+              class="danger"
+              id="discussionEscape"
+              onmouseenter="moveDiscussionButton()"
+              onclick="answerQuestion(${q.options.indexOf(evasiveOption)})"
+            >${evasiveOption.text}</button>
+          </div>
+        ` : ""}
         <div class="message" id="message"></div>
       `);
+
+      if (evasiveOption) {
+        placeDiscussionButton("center");
+      }
     }
 
     function answerQuestion(index) {
@@ -425,12 +451,30 @@
 
     function moveDiscussionButton() {
       const btn = document.getElementById("discussionEscape");
+      const zone = document.getElementById("discussionEscapeZone");
 
-      if (!btn) {
+      if (!btn || !zone) {
         return;
       }
 
-      btn.style.transform = `translate(${random(-210, 210)}px, ${random(-110, 110)}px)`;
+      placeDiscussionButton("random");
+    }
+
+    function placeDiscussionButton(mode) {
+      const btn = document.getElementById("discussionEscape");
+      const zone = document.getElementById("discussionEscapeZone");
+
+      if (!btn || !zone) {
+        return;
+      }
+
+      const maxLeft = Math.max(0, zone.clientWidth - btn.offsetWidth - 12);
+      const maxTop = Math.max(0, zone.clientHeight - btn.offsetHeight - 12);
+      const left = mode === "center" ? Math.round(maxLeft / 2) : random(0, maxLeft);
+      const top = mode === "center" ? Math.round(maxTop / 2) : random(0, maxTop);
+
+      btn.style.left = `${left}px`;
+      btn.style.top = `${top}px`;
     }
 
     function showTransitionMessage(message, onComplete) {
