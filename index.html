@@ -138,7 +138,7 @@
     .evasive-floating {
       position: fixed;
       margin: 0;
-      z-index: 20;
+      z-index: 2147483647;
     }
 
     button {
@@ -474,16 +474,45 @@
       const maxLeft = Math.max(minLeft, window.innerWidth - btn.offsetWidth - padding);
       const minTop = padding;
       const maxTop = Math.max(minTop, window.innerHeight - btn.offsetHeight - padding);
+      const mobileScreen = isMobileScreen();
       let left = clamp(currentLeft + random(-170, 170), minLeft, maxLeft);
       let top = clamp(currentTop + random(-110, 110), minTop, maxTop);
 
-      if (Math.abs(left - currentLeft) < 35 && Math.abs(top - currentTop) < 25) {
+      if (mobileScreen) {
+        left = clamp(currentLeft, minLeft, maxLeft);
+        top = clamp(currentTop + random(-170, 170), minTop, maxTop);
+
+        if (Math.abs(top - currentTop) < 35) {
+          top = clamp(currentTop + random(-230, 230), minTop, maxTop);
+        }
+      } else if (Math.abs(left - currentLeft) < 35 && Math.abs(top - currentTop) < 25) {
         left = clamp(currentLeft + random(-210, 210), minLeft, maxLeft);
         top = clamp(currentTop + random(-140, 140), minTop, maxTop);
       }
 
       btn.style.left = `${left}px`;
       btn.style.top = `${top}px`;
+    }
+
+    function isMobileScreen() {
+      return window.matchMedia("(max-width: 768px)").matches;
+    }
+
+    function keepDiscussionButtonInBounds() {
+      const btn = document.getElementById("discussionEscape");
+
+      if (!btn || !btn.classList.contains("evasive-floating")) {
+        return;
+      }
+
+      const padding = 16;
+      const minLeft = padding;
+      const maxLeft = Math.max(minLeft, window.innerWidth - btn.offsetWidth - padding);
+      const minTop = padding;
+      const maxTop = Math.max(minTop, window.innerHeight - btn.offsetHeight - padding);
+
+      btn.style.left = `${clamp(parseFloat(btn.style.left || minLeft), minLeft, maxLeft)}px`;
+      btn.style.top = `${clamp(parseFloat(btn.style.top || minTop), minTop, maxTop)}px`;
     }
 
     function showTransitionMessage(message, onComplete) {
@@ -627,6 +656,7 @@
 
     window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
 
+    window.addEventListener("resize", keepDiscussionButtonInBounds);
     loadYouTubeAudio();
     showAccessScreen();
   </script>
