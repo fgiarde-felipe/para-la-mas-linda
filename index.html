@@ -126,6 +126,10 @@
       font-size: 14px;
     }
 
+    .access-warning {
+      font-size: 17px;
+    }
+
     .buttons {
       margin-top: 22px;
       display: flex;
@@ -212,6 +216,54 @@
       transition: width 0.3s ease;
     }
 
+    .slider-card {
+      margin: 22px auto 0;
+      max-width: 420px;
+      padding: 18px 18px 16px;
+      border-radius: 24px;
+      background: #fff6f9;
+      border: 1px solid #ffd5e2;
+      text-align: left;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      font-weight: 900;
+      color: var(--pink-dark);
+    }
+
+    .slider-value {
+      min-width: 58px;
+      text-align: right;
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .slider-scale {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .service-slider {
+      width: 100%;
+      accent-color: var(--pink);
+      cursor: pointer;
+    }
+
+    .service-slider:disabled {
+      cursor: not-allowed;
+      opacity: 0.85;
+    }
+
     .loader {
       width: 82px;
       height: 82px;
@@ -287,8 +339,9 @@
 
     .toast-host {
       position: fixed;
-      right: 22px;
-      bottom: 22px;
+      left: 50%;
+      top: 22px;
+      transform: translateX(-50%);
       z-index: 30;
       pointer-events: none;
     }
@@ -367,13 +420,11 @@
       }
 
       .toast-host {
-        left: 14px;
-        right: 14px;
-        bottom: 14px;
+        top: 14px;
       }
 
       .toast {
-        width: 100%;
+        width: min(320px, calc(100vw - 28px));
       }
 
       button {
@@ -404,30 +455,36 @@
     let audioPlayer;
     let youtubeApiRequested = false;
     let toastTimeoutId;
+    let ragebaitSliderStarted = false;
 
     const ella = NOMBRE_DE_ELLA.trim() || "vos";
 
     const questions = [
       {
-        question: "Cuanto queres a Felipe?",
+        question: "¿Cuánto querés a Felipe?",
         options: [
           { text: "Mucho" },
           { text: "Muchísimo" },
           { text: "Más que a nadie" },
           { text: "No tengo opción porque el Fipo hizo este test" }
         ],
-        nextMessage: "Ay muchas gracias! Lo sabia 🥰"
+        nextMessage: "Ay, muchas gracias. Lo sabía 🥰"
       },
       {
         question: "¿Quién tiene razón en las discusiones?",
         options: [
           { text: "A. Felipe" },
           { text: "B. Fipo" },
-          { text: "C. A" },
-          { text: "D. B" },
+          { text: "C. Opción A" },
+          { text: "D. Opción B" },
           { text: `E. ${NOMBRE_DE_ELLA.trim() || "Vos"}`, evasive: true }
         ],
-        nextMessage: "Muy bien! Que suerte que sabes quien tiene los pantalones en la relacion."
+        nextMessage: "Muy bien. Qué suerte que sabés quién tiene los pantalones en la relación."
+      },
+      {
+        question: "¿Qué tan satisfecha estás con el servicio de ragebait que te brinda Felipe?",
+        type: "slider",
+        nextMessage: "Perfecto. El sistema registró una satisfacción total, como corresponde."
       }
     ];
 
@@ -439,13 +496,75 @@
 
       app.classList.remove("shake");
       app.innerHTML = html;
+      normalizeVisibleText(app);
+    }
+
+    function normalizeVisibleText(root) {
+      if (!root) {
+        return;
+      }
+
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let node;
+
+      while ((node = walker.nextNode())) {
+        node.nodeValue = normalizeMojibakeText(node.nodeValue);
+      }
+    }
+
+    function normalizeMojibakeText(text) {
+      const replacements = [
+        ["EvaluaciÃƒÂ³n oficial", "Evaluación oficial"],
+        ["Nivel de satisfacciÃƒÂ³n", "Nivel de satisfacción"],
+        ["PÃ¡gina", "Página"],
+        ["pÃ¡gina", "página"],
+        ["mÃ¡s", "más"],
+        ["MÃ¡s", "Más"],
+        ["MuchÃ­simo", "Muchísimo"],
+        ["opciÃ³n", "opción"],
+        ["sabia", "sabía"],
+        ["sabÃ©s", "sabés"],
+        ["sabÃ­a", "sabía"],
+        ["relacion", "relación"],
+        ["satisfacciÃ³n", "satisfacción"],
+        ["registrÃ³", "registró"],
+        ["mÃºsica", "música"],
+        ["QuÃ©", "Qué"],
+        ["quÃ©", "qué"],
+        ["QuiÃ©n", "Quién"],
+        ["quiÃ©n", "quién"],
+        ["estÃ¡s", "estás"],
+        ["estÃ¡", "está"],
+        ["querÃ©s", "querés"],
+        ["reÃ­r", "reír"],
+        ["haciÃ©s", "hacés"],
+        ["MuchÃ­simo", "Muchísimo"],
+        ["muchÃ­simo", "muchísimo"],
+        ["sÃ­", "sí"],
+        ["SubÃ­", "Subí"],
+        ["Â¿", "¿"],
+        ["Â¡", "¡"],
+        ["ðŸ¥°", "🥰"],
+        ["ðŸ“‹", "📋"],
+        ["ðŸ’–", "💖"],
+        ["ðŸ’•", "💕"],
+        ["ðŸ’˜", "💘"],
+        ["ðŸ’—", "💗"],
+        ["ðŸ˜Œ", "😌"],
+        ["ðŸ˜ˆ", "😈"],
+        ["ðŸ”’", "🔒"],
+        ["â¤ï¸", "❤️"],
+        ["âœ¨", "✨"]
+      ];
+
+      return replacements.reduce((value, [from, to]) => value.split(from).join(to), text);
     }
 
     function showAccessScreen() {
       render(`
         <h1>Acceso denegado</h1>
         <p>Esta página es exclusiva para la chica más linda.</p>
-        <p class="muted">Si no sos ella, por favor retirate.</p>
+        <p class="muted access-warning">Si no sos ella, por favor retirate.</p>
         <div class="buttons">
           <button onclick="verifyBeauty()">Soy yo</button>
         </div>
@@ -461,7 +580,7 @@
     function showQuizBriefing() {
       render(`
         <h2>Test para Lucia</h2>
-        <p>A continuacion deberas hacer un test oficial para proporcionar informacion importante para Felipe</p>
+        <p>A continuación deberás hacer un test oficial para proporcionar información importante para Felipe.</p>
         <div class="buttons">
           <button onclick="startQuiz()">Okay</button>
         </div>
@@ -473,24 +592,21 @@
 
       toastHost.innerHTML = `
         <div class="toast" id="volumeToast">
-          <strong class="toast-title">Subí el volumen</strong>
-          <p class="toast-text">Hay música de fondo. Vale más con audio.</p>
+          <p class="toast-text">Subí el volumen</p>
           <div class="toast-timer">
             <div class="toast-timer-fill" style="animation-duration: ${TOAST_DURATION}ms;"></div>
           </div>
         </div>
       `;
 
-      const toastTitle = toastHost.querySelector(".toast-title");
       const toastText = toastHost.querySelector(".toast-text");
 
-      if (toastTitle) {
-        toastTitle.remove();
+      if (toastText) {
+        toastText.textContent = "Subí el volumen";
       }
 
-      if (toastText) {
-        toastText.textContent = "Subi el volumen";
-      }
+      normalizeVisibleText(toastHost);
+      requestAnimationFrame(positionToastHost);
 
       toastTimeoutId = window.setTimeout(() => {
         const toast = document.getElementById("volumeToast");
@@ -510,14 +626,67 @@
       toastHost.innerHTML = "";
     }
 
+    function positionToastHost() {
+      const toast = document.getElementById("volumeToast");
+
+      if (!toast) {
+        return;
+      }
+
+      const cardRect = app.getBoundingClientRect();
+      const toastRect = toast.getBoundingClientRect();
+      const top = Math.max(14, cardRect.top - toastRect.height - 14);
+      const left = cardRect.left + (cardRect.width / 2);
+
+      toastHost.style.top = `${top}px`;
+      toastHost.style.left = `${left}px`;
+      toastHost.style.transform = "translateX(-50%)";
+    }
+
     function startQuiz() {
       currentQuestion = 0;
+      ragebaitSliderStarted = false;
       showQuestion();
     }
 
     function showQuestion() {
       const q = questions[currentQuestion];
       const progress = Math.round((currentQuestion / questions.length) * 100);
+      const sliderQuestion = q.type === "slider";
+
+      if (sliderQuestion) {
+        render(`
+          <div class="progress-text">Pregunta ${currentQuestion + 1} de ${questions.length}</div>
+          <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+          <h2>EvaluaciÃ³n oficial</h2>
+          <p>${q.question}</p>
+          <div class="slider-card">
+            <div class="slider-header">
+              <span>Nivel de satisfacciÃ³n</span>
+              <span class="slider-value" id="ragebaitSliderValue">0%</span>
+            </div>
+            <input
+              id="ragebaitSlider"
+              class="service-slider"
+              type="range"
+              min="0"
+              max="100"
+              value="0"
+              oninput="handleRagebaitSliderMove()"
+              onchange="handleRagebaitSliderMove()"
+            />
+            <div class="slider-scale">
+              <span>0%</span>
+              <span>100%</span>
+            </div>
+          </div>
+          <div class="buttons">
+            <button id="ragebaitContinue" onclick="submitRagebaitSlider()" disabled>Continuar</button>
+          </div>
+          <div class="message" id="message"></div>
+        `);
+        return;
+      }
 
       render(`
         <div class="progress-text">Pregunta ${currentQuestion + 1} de ${questions.length}</div>
@@ -549,6 +718,37 @@
       }
 
       showTransitionMessage(q.nextMessage, () => {
+        currentQuestion++;
+
+        if (currentQuestion >= questions.length) {
+          showResult();
+        } else {
+          showQuestion();
+        }
+      });
+    }
+
+    function handleRagebaitSliderMove() {
+      const slider = document.getElementById("ragebaitSlider");
+      const sliderValue = document.getElementById("ragebaitSliderValue");
+      const continueButton = document.getElementById("ragebaitContinue");
+
+      if (!slider || !sliderValue || !continueButton) {
+        return;
+      }
+
+      ragebaitSliderStarted = true;
+      slider.value = "100";
+      sliderValue.textContent = "100%";
+      continueButton.disabled = false;
+    }
+
+    function submitRagebaitSlider() {
+      if (!ragebaitSliderStarted) {
+        return;
+      }
+
+      showTransitionMessage(questions[currentQuestion].nextMessage, () => {
         currentQuestion++;
 
         if (currentQuestion >= questions.length) {
@@ -706,7 +906,7 @@
         setTimeout(() => {
           const heart = document.createElement("div");
           heart.className = "heart";
-          heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+          heart.textContent = normalizeMojibakeText(hearts[Math.floor(Math.random() * hearts.length)]);
           heart.style.left = Math.random() * 100 + "vw";
           heart.style.animationDuration = random(2200, 4200) + "ms";
           heart.style.opacity = String(Math.random() * 0.6 + 0.4);
@@ -791,7 +991,10 @@
 
     window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
 
-    window.addEventListener("resize", keepDiscussionButtonInBounds);
+    window.addEventListener("resize", () => {
+      keepDiscussionButtonInBounds();
+      positionToastHost();
+    });
     loadYouTubeAudio();
     showAccessScreen();
   </script>
