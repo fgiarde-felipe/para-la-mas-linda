@@ -285,6 +285,64 @@
       z-index: -1;
     }
 
+    .toast-host {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    .toast {
+      width: min(320px, calc(100vw - 44px));
+      background: rgba(43, 43, 43, 0.92);
+      color: white;
+      border-radius: 22px;
+      box-shadow: 0 18px 40px rgba(43, 43, 43, 0.22);
+      overflow: hidden;
+      padding: 16px 18px 14px;
+      animation: toast-in 0.3s ease both;
+    }
+
+    .toast-text {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.4;
+      color: white;
+      font-weight: 900;
+      letter-spacing: 0.01em;
+    }
+
+    .toast-timer {
+      height: 4px;
+      margin: 12px -18px -14px;
+      background: rgba(255, 255, 255, 0.18);
+      overflow: hidden;
+    }
+
+    .toast-timer-fill {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, #ffb347, var(--pink));
+      transform-origin: left center;
+      animation: toast-timer linear forwards;
+    }
+
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(12px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes toast-out {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(10px) scale(0.97); }
+    }
+
+    @keyframes toast-timer {
+      from { transform: scaleX(1); }
+      to { transform: scaleX(0); }
+    }
+
     @keyframes fall {
       to {
         transform: translateY(calc(100vh + 40px)) rotate(360deg);
@@ -308,6 +366,16 @@
         border-radius: 26px;
       }
 
+      .toast-host {
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+      }
+
+      .toast {
+        width: 100%;
+      }
+
       button {
         width: 100%;
       }
@@ -320,6 +388,7 @@
 </head>
 <body>
   <div class="youtube-audio-player" id="youtubeAudioPlayer"></div>
+  <div class="toast-host" id="toastHost"></div>
   <main class="card" id="app"></main>
 
   <script>
@@ -327,17 +396,20 @@
     const TU_NOMBRE = "Felipe";
     const NOMBRE_DE_ELLA = "Lucia"; // Ejemplo: "Sofi". Si lo dejás vacío, usa "vos".
     const AUDIO_VIDEO_ID = "5bcgc8pVQT8";
+    const TOAST_DURATION = 5000;
 
     const app = document.getElementById("app");
+    const toastHost = document.getElementById("toastHost");
     let currentQuestion = 0;
     let audioPlayer;
     let youtubeApiRequested = false;
+    let toastTimeoutId;
 
     const ella = NOMBRE_DE_ELLA.trim() || "vos";
 
     const questions = [
       {
-        question: "¿Cuánto me querés?",
+        question: "Cuanto queres a Felipe?",
         options: [
           { text: "Mucho" },
           { text: "Muchísimo" },
@@ -355,7 +427,7 @@
           { text: "D. B" },
           { text: `E. ${NOMBRE_DE_ELLA.trim() || "Vos"}`, evasive: true }
         ],
-        nextMessage: "Buena chica, que suerte que sabes quien tiene los pantalones en la relacion"
+        nextMessage: "Muy bien! Que suerte que sabes quien tiene los pantalones en la relacion."
       }
     ];
 
@@ -378,10 +450,64 @@
           <button onclick="verifyBeauty()">Soy yo</button>
         </div>
       `);
+      showVolumeToast();
     }
 
     function verifyBeauty() {
-      startQuiz();
+      clearToast();
+      showQuizBriefing();
+    }
+
+    function showQuizBriefing() {
+      render(`
+        <h2>Test para Lucia</h2>
+        <p>A continuacion deberas hacer un test oficial para proporcionar informacion importante para Felipe</p>
+        <div class="buttons">
+          <button onclick="startQuiz()">Okay</button>
+        </div>
+      `);
+    }
+
+    function showVolumeToast() {
+      clearToast();
+
+      toastHost.innerHTML = `
+        <div class="toast" id="volumeToast">
+          <strong class="toast-title">Subí el volumen</strong>
+          <p class="toast-text">Hay música de fondo. Vale más con audio.</p>
+          <div class="toast-timer">
+            <div class="toast-timer-fill" style="animation-duration: ${TOAST_DURATION}ms;"></div>
+          </div>
+        </div>
+      `;
+
+      const toastTitle = toastHost.querySelector(".toast-title");
+      const toastText = toastHost.querySelector(".toast-text");
+
+      if (toastTitle) {
+        toastTitle.remove();
+      }
+
+      if (toastText) {
+        toastText.textContent = "Subi el volumen";
+      }
+
+      toastTimeoutId = window.setTimeout(() => {
+        const toast = document.getElementById("volumeToast");
+
+        if (!toast) {
+          return;
+        }
+
+        toast.style.animation = "toast-out 0.22s ease forwards";
+        window.setTimeout(clearToast, 220);
+      }, TOAST_DURATION);
+    }
+
+    function clearToast() {
+      window.clearTimeout(toastTimeoutId);
+      toastTimeoutId = undefined;
+      toastHost.innerHTML = "";
     }
 
     function startQuiz() {
@@ -470,22 +596,15 @@
 
       const currentLeft = parseFloat(btn.style.left || rect.left);
       const currentTop = parseFloat(btn.style.top || rect.top);
-      const minLeft = padding;
-      const maxLeft = Math.max(minLeft, window.innerWidth - btn.offsetWidth - padding);
-      const minTop = padding;
-      const maxTop = Math.max(minTop, window.innerHeight - btn.offsetHeight - padding);
-      const mobileScreen = isMobileScreen();
+      const bounds = getDiscussionButtonBounds(btn, padding);
+      const minLeft = bounds.minLeft;
+      const maxLeft = bounds.maxLeft;
+      const minTop = bounds.minTop;
+      const maxTop = bounds.maxTop;
       let left = clamp(currentLeft + random(-170, 170), minLeft, maxLeft);
       let top = clamp(currentTop + random(-110, 110), minTop, maxTop);
 
-      if (mobileScreen) {
-        left = clamp(currentLeft, minLeft, maxLeft);
-        top = clamp(currentTop + random(-170, 170), minTop, maxTop);
-
-        if (Math.abs(top - currentTop) < 35) {
-          top = clamp(currentTop + random(-230, 230), minTop, maxTop);
-        }
-      } else if (Math.abs(left - currentLeft) < 35 && Math.abs(top - currentTop) < 25) {
+      if (Math.abs(left - currentLeft) < 35 && Math.abs(top - currentTop) < 25) {
         left = clamp(currentLeft + random(-210, 210), minLeft, maxLeft);
         top = clamp(currentTop + random(-140, 140), minTop, maxTop);
       }
@@ -494,8 +613,23 @@
       btn.style.top = `${top}px`;
     }
 
-    function isMobileScreen() {
-      return window.matchMedia("(max-width: 768px)").matches;
+    function getDiscussionButtonBounds(btn, padding) {
+      const minLeft = padding;
+      const maxLeft = Math.max(minLeft, window.innerWidth - btn.offsetWidth - padding);
+      let minTop = padding;
+      const maxTop = Math.max(minTop, window.innerHeight - btn.offsetHeight - padding);
+
+      const buttonsGroup = app.querySelector(".buttons");
+
+      if (buttonsGroup) {
+        const buttonsRect = buttonsGroup.getBoundingClientRect();
+        minTop = Math.min(
+          maxTop,
+          Math.max(minTop, Math.ceil(buttonsRect.bottom) + padding)
+        );
+      }
+
+      return { minLeft, maxLeft, minTop, maxTop };
     }
 
     function keepDiscussionButtonInBounds() {
@@ -506,10 +640,11 @@
       }
 
       const padding = 16;
-      const minLeft = padding;
-      const maxLeft = Math.max(minLeft, window.innerWidth - btn.offsetWidth - padding);
-      const minTop = padding;
-      const maxTop = Math.max(minTop, window.innerHeight - btn.offsetHeight - padding);
+      const bounds = getDiscussionButtonBounds(btn, padding);
+      const minLeft = bounds.minLeft;
+      const maxLeft = bounds.maxLeft;
+      const minTop = bounds.minTop;
+      const maxTop = bounds.maxTop;
 
       btn.style.left = `${clamp(parseFloat(btn.style.left || minLeft), minLeft, maxLeft)}px`;
       btn.style.top = `${clamp(parseFloat(btn.style.top || minTop), minTop, maxTop)}px`;
