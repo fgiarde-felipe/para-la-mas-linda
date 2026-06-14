@@ -139,6 +139,12 @@
       align-items: center;
     }
 
+    .question-nav {
+      margin: 0 0 18px;
+      position: relative;
+      z-index: 2;
+    }
+
     .evasive-floating {
       position: fixed;
       margin: 0;
@@ -170,11 +176,42 @@
       transform: translateY(0) scale(0.98);
     }
 
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+      filter: saturate(0.8);
+      box-shadow: none;
+      transform: none;
+    }
+
+    .question-nav button {
+      background: linear-gradient(135deg, #213660, #45679b);
+      color: white;
+      box-shadow: 0 12px 24px rgba(33, 54, 96, 0.24);
+    }
+
+    .question-nav .secondary {
+      background: linear-gradient(135deg, #fff0c6, #ffd885);
+      color: #7a4b00;
+      border: 1px solid #f0c269;
+      box-shadow: 0 10px 20px rgba(122, 75, 0, 0.12);
+    }
+
     .secondary {
       background: white;
       color: var(--pink-dark);
       border: 1px solid #ffd0df;
       box-shadow: none;
+    }
+
+    button.answer-selected {
+      box-shadow: 0 0 0 3px rgba(255, 79, 139, 0.16), 0 12px 26px rgba(255, 79, 139, 0.28);
+    }
+
+    .secondary.answer-selected {
+      background: var(--soft-pink);
+      color: var(--pink-dark);
+      border-color: #ff9abd;
     }
 
     .danger {
@@ -443,24 +480,26 @@
   <main class="card" id="app"></main>
 
   <script>
-    // Cambiá estos textos si querés personalizarlo más.
     const TU_NOMBRE = "Felipe";
-    const NOMBRE_DE_ELLA = "Lucia"; // Ejemplo: "Sofi". Si lo dejás vacío, usa "vos".
+    const NOMBRE_DE_ELLA = "Lucia";
     const AUDIO_VIDEO_ID = "5bcgc8pVQT8";
     const TOAST_DURATION = 5000;
+    const TRANSITION_DURATION = 5000;
 
     const app = document.getElementById("app");
     const toastHost = document.getElementById("toastHost");
+
     let currentQuestion = 0;
     let audioPlayer;
     let youtubeApiRequested = false;
     let toastTimeoutId;
-    let ragebaitSliderStarted = false;
+    let questionState = [];
 
     const ella = NOMBRE_DE_ELLA.trim() || "vos";
 
     const questions = [
       {
+        type: "options",
         question: "¿Cuánto querés a Felipe?",
         options: [
           { text: "A. Mucho" },
@@ -471,7 +510,8 @@
         nextMessage: "Ay, muchas gracias. Lo sabía 🥰"
       },
       {
-        question: "¿Quién tiene razón en las discusiones?",
+        type: "options",
+        question: "¿Quién tiene siempre la razón?",
         options: [
           { text: "A. Felipe" },
           { text: "B. Fipo" },
@@ -482,11 +522,42 @@
         nextMessage: "Muy bien. Qué suerte que sabés quién tiene los pantalones en la relación."
       },
       {
-        question: "¿Qué tan satisfecha estás con el servicio de ragebait que te brinda Felipe?",
         type: "slider",
+        question: "¿Qué tan satisfecha estás con el servicio de ragebait que te brinda Felipe?",
         nextMessage: "Perfecto. El sistema registró una satisfacción total, como corresponde."
       }
     ];
+
+    function createInitialQuestionState() {
+      return questions.map(() => ({
+        answer: null,
+        answered: false,
+        messageShown: false
+      }));
+    }
+
+    function getQuestionState(index) {
+      return questionState[index];
+    }
+
+    function isQuestionComplete(index) {
+      const q = questions[index];
+      const state = getQuestionState(index);
+
+      if (!q || !state) {
+        return false;
+      }
+
+      if (q.type === "slider") {
+        return state.answered && state.answer === 100;
+      }
+
+      return state.answered;
+    }
+
+    function allQuestionsAnswered() {
+      return questions.every((_, index) => isQuestionComplete(index));
+    }
 
     function render(html) {
       const floatingEscape = document.getElementById("discussionEscape");
@@ -496,68 +567,6 @@
 
       app.classList.remove("shake");
       app.innerHTML = html;
-      normalizeVisibleText(app);
-    }
-
-    function normalizeVisibleText(root) {
-      if (!root) {
-        return;
-      }
-
-      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-      let node;
-
-      while ((node = walker.nextNode())) {
-        node.nodeValue = normalizeMojibakeText(node.nodeValue);
-      }
-    }
-
-    function normalizeMojibakeText(text) {
-      const replacements = [
-        ["EvaluaciÃƒÂ³n oficial", "Evaluación oficial"],
-        ["Nivel de satisfacciÃƒÂ³n", "Nivel de satisfacción"],
-        ["PÃ¡gina", "Página"],
-        ["pÃ¡gina", "página"],
-        ["mÃ¡s", "más"],
-        ["MÃ¡s", "Más"],
-        ["MuchÃ­simo", "Muchísimo"],
-        ["opciÃ³n", "opción"],
-        ["sabia", "sabía"],
-        ["sabÃ©s", "sabés"],
-        ["sabÃ­a", "sabía"],
-        ["relacion", "relación"],
-        ["satisfacciÃ³n", "satisfacción"],
-        ["registrÃ³", "registró"],
-        ["mÃºsica", "música"],
-        ["QuÃ©", "Qué"],
-        ["quÃ©", "qué"],
-        ["QuiÃ©n", "Quién"],
-        ["quiÃ©n", "quién"],
-        ["estÃ¡s", "estás"],
-        ["estÃ¡", "está"],
-        ["querÃ©s", "querés"],
-        ["reÃ­r", "reír"],
-        ["haciÃ©s", "hacés"],
-        ["MuchÃ­simo", "Muchísimo"],
-        ["muchÃ­simo", "muchísimo"],
-        ["sÃ­", "sí"],
-        ["SubÃ­", "Subí"],
-        ["Â¿", "¿"],
-        ["Â¡", "¡"],
-        ["ðŸ¥°", "🥰"],
-        ["ðŸ“‹", "📋"],
-        ["ðŸ’–", "💖"],
-        ["ðŸ’•", "💕"],
-        ["ðŸ’˜", "💘"],
-        ["ðŸ’—", "💗"],
-        ["ðŸ˜Œ", "😌"],
-        ["ðŸ˜ˆ", "😈"],
-        ["ðŸ”’", "🔒"],
-        ["â¤ï¸", "❤️"],
-        ["âœ¨", "✨"]
-      ];
-
-      return replacements.reduce((value, [from, to]) => value.split(from).join(to), text);
     }
 
     function showAccessScreen() {
@@ -569,6 +578,7 @@
           <button onclick="verifyBeauty()">Soy yo</button>
         </div>
       `);
+
       showVolumeToast();
     }
 
@@ -599,13 +609,6 @@
         </div>
       `;
 
-      const toastText = toastHost.querySelector(".toast-text");
-
-      if (toastText) {
-        toastText.textContent = "Subí el volumen";
-      }
-
-      normalizeVisibleText(toastHost);
       requestAnimationFrame(positionToastHost);
 
       toastTimeoutId = window.setTimeout(() => {
@@ -645,25 +648,42 @@
 
     function startQuiz() {
       currentQuestion = 0;
-      ragebaitSliderStarted = false;
+      questionState = createInitialQuestionState();
       showQuestion();
+    }
+
+    function renderQuestionNavigation(isLastQuestion) {
+      const canSubmit = allQuestionsAnswered();
+
+      return `
+        <div class="buttons question-nav">
+          ${currentQuestion > 0 ? '<button class="secondary" type="button" onclick="goToPreviousQuestion()">Anterior</button>' : ""}
+          <button type="button" onclick="${isLastQuestion ? "submitRagebaitSlider()" : "goToNextQuestion()"}" ${isLastQuestion && !canSubmit ? "disabled" : ""}>${isLastQuestion ? "Enviar test" : "Siguiente"}</button>
+        </div>
+      `;
     }
 
     function showQuestion() {
       const q = questions[currentQuestion];
+      const state = getQuestionState(currentQuestion);
       const progress = Math.round((currentQuestion / questions.length) * 100);
-      const sliderQuestion = q.type === "slider";
+      const isLastQuestion = currentQuestion === questions.length - 1;
 
-      if (sliderQuestion) {
+      if (q.type === "slider") {
+        const sliderValue = state.answered && typeof state.answer === "number"
+          ? state.answer
+          : 0;
+
         render(`
           <div class="progress-text">Pregunta ${currentQuestion + 1} de ${questions.length}</div>
           <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
-          <h2>EvaluaciÃ³n oficial</h2>
+          ${renderQuestionNavigation(isLastQuestion)}
+          <h2>Evaluación oficial</h2>
           <p>${q.question}</p>
           <div class="slider-card">
             <div class="slider-header">
-              <span>Nivel de satisfacciÃ³n</span>
-              <span class="slider-value" id="ragebaitSliderValue">0%</span>
+              <span>Nivel de satisfacción</span>
+              <span class="slider-value" id="ragebaitSliderValue">${sliderValue}%</span>
             </div>
             <input
               id="ragebaitSlider"
@@ -671,32 +691,31 @@
               type="range"
               min="0"
               max="100"
-              value="0"
+              value="${sliderValue}"
               oninput="handleRagebaitSliderMove()"
-              onchange="handleRagebaitSliderMove()"
+              onchange="handleRagebaitSliderRelease()"
             />
             <div class="slider-scale">
               <span>0%</span>
               <span>100%</span>
             </div>
           </div>
-          <div class="buttons">
-            <button id="ragebaitContinue" onclick="submitRagebaitSlider()" disabled>Continuar</button>
-          </div>
           <div class="message" id="message"></div>
         `);
+
         return;
       }
 
       render(`
         <div class="progress-text">Pregunta ${currentQuestion + 1} de ${questions.length}</div>
         <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+        ${renderQuestionNavigation(false)}
         <h2>Evaluación oficial</h2>
         <p>${q.question}</p>
         <div class="buttons">
           ${q.options.map((option, index) => `
             <button
-              class="${option.evasive ? "" : (index % 2 ? "secondary" : "")} ${option.evasive ? "secondary" : ""}"
+              class="${option.evasive ? "secondary" : (index % 2 ? "secondary" : "")} ${state.answer === index ? "answer-selected" : ""}"
               ${option.evasive ? 'id="discussionEscape"' : ""}
               ${option.evasive ? 'onmouseenter="moveDiscussionButton()"' : ""}
               ${option.evasive ? 'onpointerdown="return handleEvasiveInteraction(event)"' : ""}
@@ -717,46 +736,110 @@
         return;
       }
 
-      showTransitionMessage(q.nextMessage, () => {
-        currentQuestion++;
+      const state = getQuestionState(currentQuestion);
+      state.answer = index;
+      state.answered = true;
 
-        if (currentQuestion >= questions.length) {
-          showResult();
-        } else {
-          showQuestion();
-        }
-      });
+      const message = document.getElementById("message");
+      if (message) {
+        message.textContent = "";
+      }
+
+      showQuestion();
+    }
+
+    function goToPreviousQuestion() {
+      if (currentQuestion <= 0) {
+        return;
+      }
+
+      currentQuestion--;
+      showQuestion();
+    }
+
+    function goToNextQuestion() {
+      if (currentQuestion >= questions.length - 1) {
+        return;
+      }
+
+      const q = questions[currentQuestion];
+      const state = getQuestionState(currentQuestion);
+
+      const advance = () => {
+        currentQuestion++;
+        showQuestion();
+      };
+
+      if (state.answered && !state.messageShown && q.nextMessage) {
+        state.messageShown = true;
+        showTransitionMessage(q.nextMessage, advance);
+        return;
+      }
+
+      advance();
     }
 
     function handleRagebaitSliderMove() {
       const slider = document.getElementById("ragebaitSlider");
       const sliderValue = document.getElementById("ragebaitSliderValue");
-      const continueButton = document.getElementById("ragebaitContinue");
+      const message = document.getElementById("message");
 
-      if (!slider || !sliderValue || !continueButton) {
+      if (!slider || !sliderValue) {
         return;
       }
 
-      ragebaitSliderStarted = true;
+      const state = getQuestionState(currentQuestion);
+      state.answer = Number(slider.value);
+      state.answered = true;
+      sliderValue.textContent = `${slider.value}%`;
+
+      if (message) {
+        message.textContent = "";
+      }
+    }
+
+    function handleRagebaitSliderRelease() {
+      const slider = document.getElementById("ragebaitSlider");
+      const sliderValue = document.getElementById("ragebaitSliderValue");
+      const state = getQuestionState(currentQuestion);
+
+      if (!slider || !sliderValue || !state.answered) {
+        return;
+      }
+
+      state.answer = 100;
       slider.value = "100";
       sliderValue.textContent = "100%";
-      continueButton.disabled = false;
     }
 
     function submitRagebaitSlider() {
-      if (!ragebaitSliderStarted) {
+      const state = getQuestionState(currentQuestion);
+      const message = document.getElementById("message");
+
+      if (!state.answered) {
+        if (message) {
+          message.textContent = "Debes dar un nivel de satisfacción antes de continuar.";
+        }
+
         return;
       }
 
-      showTransitionMessage(questions[currentQuestion].nextMessage, () => {
-        currentQuestion++;
-
-        if (currentQuestion >= questions.length) {
-          showResult();
-        } else {
-          showQuestion();
+      if (!allQuestionsAnswered()) {
+        if (message) {
+          message.textContent = "Debes responder todas las preguntas antes de enviar el test.";
         }
-      });
+
+        return;
+      }
+
+      state.answer = 100;
+      state.answered = true;
+
+      if (message) {
+        message.textContent = "";
+      }
+
+      showTransitionMessage(questions[currentQuestion].nextMessage, showResult);
     }
 
     function moveDiscussionButton() {
@@ -801,6 +884,7 @@
       const maxLeft = bounds.maxLeft;
       const minTop = bounds.minTop;
       const maxTop = bounds.maxTop;
+
       let left = clamp(currentLeft + random(-170, 170), minLeft, maxLeft);
       let top = clamp(currentTop + random(-110, 110), minTop, maxTop);
 
@@ -819,13 +903,16 @@
       let minTop = padding;
       const maxTop = Math.max(minTop, window.innerHeight - btn.offsetHeight - padding);
 
-      const buttonsGroup = app.querySelector(".buttons");
+      const buttonGroups = Array.from(app.querySelectorAll(".buttons"));
 
-      if (buttonsGroup) {
-        const buttonsRect = buttonsGroup.getBoundingClientRect();
+      if (buttonGroups.length) {
+        const lowestButtonsBottom = Math.max(
+          ...buttonGroups.map((group) => Math.ceil(group.getBoundingClientRect().bottom))
+        );
+
         minTop = Math.min(
           maxTop,
-          Math.max(minTop, Math.ceil(buttonsRect.bottom) + padding)
+          Math.max(minTop, lowestButtonsBottom + padding)
         );
       }
 
@@ -841,20 +928,16 @@
 
       const padding = 16;
       const bounds = getDiscussionButtonBounds(btn, padding);
-      const minLeft = bounds.minLeft;
-      const maxLeft = bounds.maxLeft;
-      const minTop = bounds.minTop;
-      const maxTop = bounds.maxTop;
 
-      btn.style.left = `${clamp(parseFloat(btn.style.left || minLeft), minLeft, maxLeft)}px`;
-      btn.style.top = `${clamp(parseFloat(btn.style.top || minTop), minTop, maxTop)}px`;
+      btn.style.left = `${clamp(parseFloat(btn.style.left || bounds.minLeft), bounds.minLeft, bounds.maxLeft)}px`;
+      btn.style.top = `${clamp(parseFloat(btn.style.top || bounds.minTop), bounds.minTop, bounds.maxTop)}px`;
     }
 
     function showTransitionMessage(message, onComplete) {
       render(`
         <div class="message" style="min-height:auto; font-size:28px; margin-top:0;">${message}</div>
         <div class="progress-bar" style="margin-top: 22px;">
-          <div class="progress-fill" id="transitionProgress" style="width: 0; transition: width 5s linear;"></div>
+          <div class="progress-fill" id="transitionProgress" style="width: 0; transition: width ${TRANSITION_DURATION}ms linear;"></div>
         </div>
       `);
 
@@ -865,7 +948,7 @@
         }
       });
 
-      setTimeout(onComplete, 5000);
+      window.setTimeout(onComplete, TRANSITION_DURATION);
     }
 
     function showResult() {
@@ -902,17 +985,18 @@
 
     function rainHearts() {
       const hearts = ["💖", "💕", "💘", "💗", "❤️", "✨"];
+
       for (let i = 0; i < 34; i++) {
-        setTimeout(() => {
+        window.setTimeout(() => {
           const heart = document.createElement("div");
           heart.className = "heart";
-          heart.textContent = normalizeMojibakeText(hearts[Math.floor(Math.random() * hearts.length)]);
-          heart.style.left = Math.random() * 100 + "vw";
-          heart.style.animationDuration = random(2200, 4200) + "ms";
+          heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+          heart.style.left = `${Math.random() * 100}vw`;
+          heart.style.animationDuration = `${random(2200, 4200)}ms`;
           heart.style.opacity = String(Math.random() * 0.6 + 0.4);
-          heart.style.fontSize = random(17, 30) + "px";
+          heart.style.fontSize = `${random(17, 30)}px`;
           document.body.appendChild(heart);
-          setTimeout(() => heart.remove(), 4600);
+          window.setTimeout(() => heart.remove(), 4600);
         }, i * 70);
       }
     }
@@ -995,6 +1079,7 @@
       keepDiscussionButtonInBounds();
       positionToastHost();
     });
+
     loadYouTubeAudio();
     showAccessScreen();
   </script>
