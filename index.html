@@ -89,13 +89,11 @@
     .complaint-sticker {
       width: min(240px, calc(100vw - 48px));
       display: block;
-      border: 10px solid white;
       border-radius: 26px;
-      background: white;
       box-shadow: 0 18px 34px rgba(84, 20, 46, 0.28);
       opacity: 0;
-      transform: translateY(-18px) scale(0.28) rotate(-16deg);
-      animation: sticker-pop 0.78s cubic-bezier(0.18, 0.9, 0.22, 1.25) forwards;
+      transform: translate(-90px, -90px) scale(0.55) rotate(-28deg);
+      animation: sticker-slap 0.72s cubic-bezier(0.18, 0.9, 0.22, 1.25) forwards;
     }
 
     .card::after {
@@ -115,18 +113,23 @@
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    @keyframes sticker-pop {
+    @keyframes sticker-slap {
       0% {
         opacity: 0;
-        transform: translateY(-18px) scale(0.28) rotate(-16deg);
+        transform: translate(-90px, -90px) scale(0.55) rotate(-28deg);
       }
-      68% {
+      18% {
         opacity: 1;
-        transform: translateY(6px) scale(1.06) rotate(6deg);
+      }
+      62% {
+        transform: translate(12px, 12px) scale(1.08) rotate(-1deg);
+      }
+      80% {
+        transform: translate(-5px, -5px) scale(0.97) rotate(-6deg);
       }
       100% {
         opacity: 1;
-        transform: translateY(0) scale(1) rotate(-4deg);
+        transform: translate(0, 0) scale(1) rotate(-4deg);
       }
     }
 
@@ -249,13 +252,17 @@
     }
 
     button.answer-selected {
-      box-shadow: 0 0 0 3px rgba(255, 79, 139, 0.16), 0 12px 26px rgba(255, 79, 139, 0.28);
+      box-shadow: 0 0 0 3px white, 0 0 0 6px var(--pink), 0 14px 28px rgba(255, 79, 139, 0.38);
+      transform: scale(1.05);
+      filter: brightness(1.06);
     }
 
     .secondary.answer-selected {
-      background: var(--soft-pink);
-      color: var(--pink-dark);
-      border-color: #ff9abd;
+      background: linear-gradient(135deg, var(--pink), #ff7aaa);
+      color: white;
+      border-color: var(--pink);
+      box-shadow: 0 0 0 3px white, 0 0 0 6px var(--pink), 0 14px 28px rgba(255, 79, 139, 0.38);
+      transform: scale(1.05);
     }
 
     .danger {
