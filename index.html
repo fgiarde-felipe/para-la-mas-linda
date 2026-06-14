@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#ff4f8b" />
-  <meta property="og:title" content="Acceso restringido" />
+  <meta property="og:title" content="Para Lucia" />
   <meta property="og:description" content="Página exclusiva. Solo una persona puede entrar." />
-  <title>Acceso restringido</title>
+  <title>Para Lucia</title>
 
   <style>
     :root {
@@ -559,6 +559,17 @@
       return questions.every((_, index) => isQuestionComplete(index));
     }
 
+    function updateSubmitButtonState() {
+      const submitButton = Array.from(app.querySelectorAll(".question-nav button"))
+        .find((button) => button.textContent.trim() === "Enviar test");
+
+      if (!submitButton) {
+        return;
+      }
+
+      submitButton.disabled = !allQuestionsAnswered();
+    }
+
     function render(html) {
       const floatingEscape = document.getElementById("discussionEscape");
       if (floatingEscape && !app.contains(floatingEscape)) {
@@ -666,7 +677,7 @@
     function showQuestion() {
       const q = questions[currentQuestion];
       const state = getQuestionState(currentQuestion);
-      const progress = Math.round((currentQuestion / questions.length) * 100);
+      const progress = Math.round(((currentQuestion + 1) / questions.length) * 100);
       const isLastQuestion = currentQuestion === questions.length - 1;
 
       if (q.type === "slider") {
@@ -694,6 +705,8 @@
               value="${sliderValue}"
               oninput="handleRagebaitSliderMove()"
               onchange="handleRagebaitSliderRelease()"
+              onpointerup="handleRagebaitSliderRelease()"
+              onkeyup="handleRagebaitSliderRelease()"
             />
             <div class="slider-scale">
               <span>0%</span>
@@ -746,6 +759,7 @@
       }
 
       showQuestion();
+      updateSubmitButtonState();
     }
 
     function goToPreviousQuestion() {
@@ -796,6 +810,8 @@
       if (message) {
         message.textContent = "";
       }
+
+      updateSubmitButtonState();
     }
 
     function handleRagebaitSliderRelease() {
@@ -808,8 +824,10 @@
       }
 
       state.answer = 100;
+      state.answered = true;
       slider.value = "100";
       sliderValue.textContent = "100%";
+      updateSubmitButtonState();
     }
 
     function submitRagebaitSlider() {
@@ -952,31 +970,15 @@
     }
 
     function showResult() {
-      const paciencia = 100;
-      const insoportable = 43;
-
       render(`
         <div class="badge">📋 Informe final</div>
         <h1>Diagnóstico completo</h1>
         <div class="result-number">100%</div>
         <p>Confirmado: ${ella} es oficialmente la persona favorita de ${TU_NOMBRE}.</p>
 
-        <div class="stats">
-          <div class="stat">💖 Nivel de lindura: ilegal</div>
-          <div class="stat">😌 Paciencia con ${TU_NOMBRE}: ${paciencia}%</div>
-          <div class="stat">😈 Probabilidad de que ${TU_NOMBRE} te siga molestando: ${insoportable}%</div>
-          <div class="stat">🔒 Estado de la relación: no reembolsable</div>
-        </div>
-
-        <div class="final-note">
-          <p><strong>Nota final, ahora sí sin hacerme el gracioso:</strong></p>
-          <p>Me encanta molestarte, hacerte reír y buscar cualquier excusa para sacarte una sonrisa.</p>
-          <p>Pero posta: te quiero muchísimo. Sos mi persona favorita, incluso cuando te hacés la difícil.</p>
-        </div>
-
         <div class="buttons">
           <button onclick="rainHearts()">Aceptar diagnóstico</button>
-          <button class="secondary" onclick="startQuiz()">Repetir evaluación</button>
+          <button class="secondary" onclick="showAccessScreen()">Volver al inicio</button>
         </div>
       `);
 
