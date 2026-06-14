@@ -7,6 +7,7 @@
   <meta property="og:title" content="Para Lucia" />
   <meta property="og:description" content="Página exclusiva. Solo una persona puede entrar." />
   <title>Para Lucia</title>
+  <link rel="icon" type="image/png" href="heart.png" />
 
   <style>
     :root {
@@ -72,6 +73,32 @@
       animation: appear 0.35s ease both;
       z-index: 1;
       overflow: hidden;
+    }
+
+    .nav-host {
+      position: absolute;
+      top: 0;
+      right: 0;
+      transform: translateY(calc(-100% - 10px));
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      z-index: 3;
+    }
+
+    .nav-host .question-nav {
+      margin: 0;
+      gap: 6px;
+    }
+
+    .nav-host .question-nav button {
+      min-height: 36px;
+      padding: 7px 16px;
+      font-size: 17px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .sticker-host {
@@ -471,6 +498,16 @@
       animation: toast-in 0.3s ease both;
     }
 
+    .toast--light {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(255, 79, 139, 0.22);
+      box-shadow: 0 14px 36px rgba(130, 35, 75, 0.16);
+    }
+
+    .toast--light .toast-text {
+      color: var(--pink-dark);
+    }
+
     .toast-text {
       margin: 0;
       font-size: 15px;
@@ -545,6 +582,13 @@
         width: 100%;
       }
 
+      .option-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+      }
+
       .buttons {
         gap: 8px;
       }
@@ -556,6 +600,7 @@
   <div class="toast-host" id="toastHost"></div>
   <div class="app-shell">
     <main class="card" id="app"></main>
+    <div class="nav-host" id="navHost"></div>
     <div class="sticker-host" id="stickerHost"></div>
   </div>
 
@@ -570,6 +615,7 @@
     const app = document.getElementById("app");
     const toastHost = document.getElementById("toastHost");
     const stickerHost = document.getElementById("stickerHost");
+    const navHost = document.getElementById("navHost");
 
     let currentQuestion = 0;
     let audioPlayer;
@@ -643,7 +689,7 @@
     }
 
     function updateSubmitButtonState() {
-      const submitButton = Array.from(app.querySelectorAll(".question-nav button"))
+      const submitButton = Array.from(navHost.querySelectorAll(".question-nav button"))
         .find((button) => button.textContent.trim() === "Enviar test");
 
       if (!submitButton) {
@@ -662,6 +708,7 @@
       clearComplaintSticker();
       app.classList.remove("shake");
       app.innerHTML = html;
+      if (navHost) navHost.innerHTML = "";
     }
 
     function clearComplaintSticker() {
@@ -719,26 +766,12 @@
       clearToast();
 
       toastHost.innerHTML = `
-        <div class="toast" id="volumeToast">
+        <div class="toast toast--light" id="volumeToast">
           <p class="toast-text">Subí el volumen</p>
-          <div class="toast-timer">
-            <div class="toast-timer-fill" style="animation-duration: ${TOAST_DURATION}ms;"></div>
-          </div>
         </div>
       `;
 
       requestAnimationFrame(positionToastHost);
-
-      toastTimeoutId = window.setTimeout(() => {
-        const toast = document.getElementById("volumeToast");
-
-        if (!toast) {
-          return;
-        }
-
-        toast.style.animation = "toast-out 0.22s ease forwards";
-        window.setTimeout(clearToast, 220);
-      }, TOAST_DURATION);
     }
 
     function clearToast() {
@@ -756,7 +789,7 @@
 
       const cardRect = app.getBoundingClientRect();
       const toastRect = toast.getBoundingClientRect();
-      const top = Math.max(14, cardRect.top - toastRect.height - 14);
+      const top = Math.max(14, cardRect.top - toastRect.height - 28);
       const left = cardRect.left + (cardRect.width / 2);
 
       toastHost.style.top = `${top}px`;
@@ -773,10 +806,10 @@
     function renderQuestionNavigation(isLastQuestion) {
       const canSubmit = allQuestionsAnswered();
 
-      return `
+      navHost.innerHTML = `
         <div class="buttons question-nav">
-          ${currentQuestion > 0 ? '<button class="secondary" type="button" onclick="goToPreviousQuestion()">Anterior</button>' : ""}
-          <button type="button" onclick="${isLastQuestion ? "submitRagebaitSlider()" : "goToNextQuestion()"}" ${isLastQuestion && !canSubmit ? "disabled" : ""}>${isLastQuestion ? "Enviar test" : "Siguiente"}</button>
+          ${currentQuestion > 0 ? '<button class="secondary" type="button" onclick="goToPreviousQuestion()">←</button>' : ""}
+          <button type="button" onclick="${isLastQuestion ? "submitRagebaitSlider()" : "goToNextQuestion()"}" ${isLastQuestion && !canSubmit ? "disabled" : ""}>${isLastQuestion ? "Enviar test" : "→"}</button>
         </div>
       `;
     }
@@ -795,7 +828,6 @@
         render(`
           <div class="progress-text">Pregunta ${currentQuestion + 1} de ${questions.length}</div>
           <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
-          ${renderQuestionNavigation(isLastQuestion)}
           <h2>Evaluación oficial</h2>
           <p>${q.question}</p>
           <div class="slider-card">
@@ -823,16 +855,16 @@
           <div class="message" id="message"></div>
         `);
 
+        renderQuestionNavigation(isLastQuestion);
         return;
       }
 
       render(`
         <div class="progress-text">Pregunta ${currentQuestion + 1} de ${questions.length}</div>
         <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
-        ${renderQuestionNavigation(false)}
         <h2>Evaluación oficial</h2>
         <p>${q.question}</p>
-        <div class="buttons">
+        <div class="buttons option-buttons">
           ${q.options.map((option, index) => `
             <button
               class="${option.evasive ? "secondary" : (index % 2 ? "secondary" : "")} ${state.answer === index ? "answer-selected" : ""}"
@@ -845,6 +877,8 @@
         </div>
         <div class="message" id="message"></div>
       `);
+
+      renderQuestionNavigation(false);
     }
 
     function answerQuestion(index) {
