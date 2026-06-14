@@ -301,6 +301,25 @@
       opacity: 0.85;
     }
 
+    .complaint-input {
+      width: min(100%, 420px);
+      margin: 18px auto 0;
+      display: block;
+      padding: 15px 18px;
+      border-radius: 18px;
+      border: 1px solid #ffd0df;
+      background: white;
+      font-size: 16px;
+      color: var(--text);
+      outline: none;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .complaint-input:focus {
+      border-color: #ff7aaa;
+      box-shadow: 0 0 0 4px rgba(255, 79, 139, 0.12);
+    }
+
     .loader {
       width: 82px;
       height: 82px;
@@ -313,6 +332,13 @@
 
     @keyframes spin {
       to { transform: rotate(360deg); }
+    }
+
+    .loading-note {
+      max-width: 420px;
+      margin-top: 14px;
+      font-size: 15px;
+      line-height: 1.45;
     }
 
     .result-number {
@@ -485,6 +511,7 @@
     const AUDIO_VIDEO_ID = "5bcgc8pVQT8";
     const TOAST_DURATION = 5000;
     const TRANSITION_DURATION = 5000;
+    const FINAL_LOADING_DURATION = 20000;
 
     const app = document.getElementById("app");
     const toastHost = document.getElementById("toastHost");
@@ -857,7 +884,7 @@
         message.textContent = "";
       }
 
-      showTransitionMessage(questions[currentQuestion].nextMessage, showResult);
+      showFinalLoadingScreen(showResult);
     }
 
     function moveDiscussionButton() {
@@ -969,6 +996,34 @@
       window.setTimeout(onComplete, TRANSITION_DURATION);
     }
 
+    function showFinalLoadingScreen(onComplete) {
+      showLoadingScreen(
+        "Cargando...",
+        "(Esta pantalla de carga es totalmente innecesaria y solo existe para hacerte perder el tiempo)",
+        onComplete
+      );
+    }
+
+    function showLoadingScreen(title, note, onComplete) {
+      render(`
+        <h1>${title}</h1>
+        <div class="loader" aria-hidden="true"></div>
+        <p class="muted loading-note">${note}</p>
+        <div class="progress-bar" style="margin-top: 24px;">
+          <div class="progress-fill" id="finalLoadingProgress" style="width: 0; transition: width ${FINAL_LOADING_DURATION}ms linear;"></div>
+        </div>
+      `);
+
+      requestAnimationFrame(() => {
+        const progress = document.getElementById("finalLoadingProgress");
+        if (progress) {
+          progress.style.width = "100%";
+        }
+      });
+
+      window.setTimeout(onComplete, FINAL_LOADING_DURATION);
+    }
+
     function showResult() {
       render(`
         <div class="badge">📋 Informe final</div>
@@ -978,11 +1033,66 @@
 
         <div class="buttons">
           <button onclick="rainHearts()">Aceptar diagnóstico</button>
+          <button onclick="showComplaintForm()">Denunciar test</button>
           <button class="secondary" onclick="showAccessScreen()">Volver al inicio</button>
         </div>
       `);
 
       rainHearts();
+    }
+
+    function showComplaintForm() {
+      render(`
+        <h2>Crees que este test esta arreglado o tienes alguna queja? Escribenos!</h2>
+        <input
+          id="complaintInput"
+          class="complaint-input"
+          type="text"
+          placeholder="Escribe tu denuncia"
+          oninput="handleComplaintInput()"
+        />
+        <div class="buttons">
+          <button id="complaintSubmit" onclick="submitComplaint()" disabled>Enviar</button>
+          <button class="secondary" onclick="showResult()">Volver</button>
+        </div>
+      `);
+    }
+
+    function handleComplaintInput() {
+      const input = document.getElementById("complaintInput");
+      const submit = document.getElementById("complaintSubmit");
+
+      if (!input || !submit) {
+        return;
+      }
+
+      submit.disabled = input.value.trim().length === 0;
+    }
+
+    function submitComplaint() {
+      const input = document.getElementById("complaintInput");
+
+      if (!input || input.value.trim().length === 0) {
+        return;
+      }
+
+      showLoadingScreen(
+        "Cargando",
+        "Esta pantalla de carga tambien es totalmente innecesaria",
+        showComplaintResult
+      );
+    }
+
+    function showComplaintResult() {
+      render(`
+        <h1>Denuncia recibida.</h1>
+        <p>Estado: ignorada.</p>
+        <p>Motivo: el área de denuncias también está administrada por Felipe.</p>
+        <div class="buttons">
+          <button onclick="showResult()">Volver a informe final</button>
+          <button class="secondary" onclick="showAccessScreen()">Volver al inicio</button>
+        </div>
+      `);
     }
 
     function rainHearts() {
