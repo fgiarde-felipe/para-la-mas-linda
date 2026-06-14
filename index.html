@@ -38,6 +38,11 @@
       display: grid;
       place-items: center;
       padding: 22px;
+    }
+
+    body.layout-top {
+      align-items: start;
+      padding-top: 40px;
       background:
         radial-gradient(circle at top left, #fff 0 10%, transparent 30%),
         radial-gradient(circle at bottom right, #ffc8da 0 10%, transparent 28%),
@@ -89,6 +94,7 @@
     .nav-host .question-nav {
       margin: 0;
       gap: 6px;
+      flex-wrap: nowrap;
     }
 
     .nav-host .question-nav button {
@@ -99,6 +105,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      width: auto;
     }
 
     .sticker-host {
@@ -709,6 +716,7 @@
       app.classList.remove("shake");
       app.innerHTML = html;
       if (navHost) navHost.innerHTML = "";
+      document.body.classList.remove("layout-top");
     }
 
     function clearComplaintSticker() {
@@ -731,7 +739,7 @@
         }
 
         stickerHost.innerHTML = '<img src="middle-finger.jpg" alt="" class="complaint-sticker" />';
-      }, 1000);
+      }, 2000);
     }
 
     function showAccessScreen() {
@@ -1198,6 +1206,7 @@
     }
 
     function showComplaintResult() {
+      document.body.classList.add("layout-top");
       render(`
         <h1>Denuncia recibida.</h1>
         <p>Estado: ignorada.</p>
