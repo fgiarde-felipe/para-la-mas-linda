@@ -813,11 +813,13 @@
 
     function renderQuestionNavigation(isLastQuestion) {
       const canSubmit = allQuestionsAnswered();
+      const currentAnswered = isQuestionComplete(currentQuestion);
+      const nextDisabled = isLastQuestion ? !canSubmit : !currentAnswered;
 
       navHost.innerHTML = `
         <div class="buttons question-nav">
           ${currentQuestion > 0 ? '<button class="secondary" type="button" onclick="goToPreviousQuestion()">←</button>' : ""}
-          <button type="button" onclick="${isLastQuestion ? "submitRagebaitSlider()" : "goToNextQuestion()"}" ${isLastQuestion && !canSubmit ? "disabled" : ""}>${isLastQuestion ? "Enviar test" : "→"}</button>
+          <button type="button" onclick="${isLastQuestion ? "submitRagebaitSlider()" : "goToNextQuestion()"}" ${nextDisabled ? "disabled" : ""}>${isLastQuestion ? "Enviar test" : "→"}</button>
         </div>
       `;
     }
@@ -1206,7 +1208,6 @@
     }
 
     function showComplaintResult() {
-      document.body.classList.add("layout-top");
       render(`
         <h1>Denuncia recibida.</h1>
         <p>Estado: ignorada.</p>
@@ -1216,6 +1217,10 @@
           <button class="secondary" onclick="showAccessScreen()">Volver al inicio</button>
         </div>
       `);
+
+      if (window.matchMedia("(max-width: 640px)").matches) {
+        document.body.classList.add("layout-top");
+      }
 
       scheduleComplaintSticker();
     }
